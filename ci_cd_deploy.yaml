@@ -40,12 +40,12 @@ jobs:
 
 
 
-#Asegúremos de reemplazar <YOUR_AWS_REGION>, <YOUR_S3_BUCKET>, <YOUR_STACK_NAME>, y <YOUR_REST_API_ID> con los valores adecuados para tu entorno.
-#Este archivo de configuración ejecuta los siguientes pasos:
-#Checkout code: Clona el código de tu repositorio.
-#Configure AWS Credentials: Configura las credenciales de AWS para acceder a tu cuenta de AWS.
-#Deploy to AWS Lambda: Empaqueta y despliega la función Lambda utilizando CloudFormation.
-#Update API Gateway: Actualiza el API Gateway para reflejar los cambios en la función Lambda.
-#Con este archivo de configuración, cada vez que hagas un push a la rama principal de tu repositorio en GitHub, 
-#Se ejecutará este pipeline, lo que desplegará automáticamente los cambios en tus servicios de AWS. 
-#Asegúremosno de ajustar y probar este pipeline según tus necesidades específicas y las configuraciones de tu entorno AWS.
+# Asegúremos de reemplazar <YOUR_AWS_REGION>, <YOUR_S3_BUCKET>, <YOUR_STACK_NAME>, y <YOUR_REST_API_ID> con los valores adecuados para tu entorno.
+# Este archivo de configuración ejecuta los siguientes pasos:
+# Checkout code: Clona el código de tu repositorio.
+# Configure AWS Credentials: Configura las credenciales de AWS para acceder a tu cuenta de AWS.
+# Deploy to AWS Lambda: Empaqueta y despliega la función Lambda utilizando CloudFormation.
+# Update API Gateway: Actualiza el API Gateway para reflejar los cambios en la función Lambda.
+# Con este archivo de configuración, cada vez que hagas un push a la rama principal de tu repositorio en GitHub, 
+# Se ejecutará este pipeline, lo que desplegará automáticamente los cambios en tus servicios de AWS. 
+# Asegúremosno de ajustar y probar este pipeline según tus necesidades específicas y las configuraciones de tu entorno AWS.
