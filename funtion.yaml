@@ -1,0 +1,97 @@
+#AWS CloudFormation para desplegar el API Gateway y la función Lambda con el código Python proporcionado
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for deploying API Gateway and Lambda function
+
+Parameters:
+  ApiName:
+    Type: String
+    Description: Name for the API Gateway
+    Default: MyApi
+
+Resources:
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+
+          def lambda_handler(event, context):
+              response = {
+                  "statusCode": 200,
+                  "body": json.dumps("¡Hola desde AWS Lambda! Mi nombre es..."),
+              }
+              return response
+      Runtime: python3.8
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Ref ApiName
+
+  ApiGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: '{proxy+}'
+
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: ANY
+      ResourceId: !Ref ApiGatewayResource
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+          - { LambdaFunctionArn: !GetAtt MyLambdaFunction.Arn }
+      MethodResponses:
+        - StatusCode: 200
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+
+Outputs:
+  ApiURL:
+    Description: URL of the API Gateway endpoint
+    Value: !Sub "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+
+# Este template de CloudFormation crea los siguientes recursos:
+# Una función Lambda con el código proporcionado.
+# Un rol de IAM para la función Lambda.
+# Un API Gateway con un recurso y un método que utiliza la función Lambda.
+# Un despliegue del API Gateway.
+# Una salida que muestra la URL del endpoint del API Gateway.
+# Podemos  personalizar el nombre del API Gateway modificando el parámetro ApiName. Una vez que hayas guardado este template en un archivo YAML,
+# podemos desplegarlo en tu cuenta de AWS utilizando la CLI de AWS o la consola de AWS CloudFormation.

@@ -1,0 +1,140 @@
+#Me gustaria estme mismo ejercicio deplopyarlo utilizando el sercio de ECS  y terraform para crear la infra como codigo 
+
+# Para esta solución, configuraremos AWS ECS para manejar el servicio de API HTTP público y utilizaremos AWS Lambda para procesar las solicitudes entrantes al API. Aquí hay una descripción general del enfoque:
+# AWS Lambda: Utilizaremos la función Lambda proporcionada para procesar las solicitudes entrantes al API. Esta función Lambda responderá con un mensaje JSON que indica que la solicitud ha sido manejada por Lambda.
+# AWS ECS: Configuraremos un servicio en AWS ECS para ejecutar un contenedor Docker que servirá como la infraestructura de nuestro API HTTP. Este contenedor escuchará las solicitudes HTTP entrantes y, según ciertas condiciones, reenviará las solicitudes a la función Lambda para su procesamiento.
+# AWS API Gateway: Configuraremos AWS API Gateway para actuar como el punto de entrada público para nuestro API HTTP. El API Gateway dirigirá las solicitudes entrantes a nuestro servicio ECS en AWS ECS.
+# Aquí está el flujo general de la arquitectura:
+
+#rust
+Solicitudes HTTP --> AWS API Gateway --> AWS ECS (contenedor) --> AWS Lambda (para ciertas solicitudes)
+
+#Ahora, te proporcionaré un ejemplo básico de cómo podrías implementar esta solución utilizando Terraform para configurar la infraestructura en AWS:
+
+provider "aws" {
+  region = "us-east-1"  # Reemplaza con tu región AWS
+}
+
+resource "aws_ecs_cluster" "my_cluster" {
+  name = "my-cluster"
+}
+
+resource "aws_ecs_task_definition" "my_task_definition" {
+  family                   = "my-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+
+  container_definitions = jsonencode([
+    {
+      name      = "my-container"
+      image     = "<YOUR_CONTAINER_IMAGE_URL>"  # Reemplaza con la URL de tu imagen de contenedor Docker
+      cpu       = 256
+      memory    = 512
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80  # Puerto en el que escucha tu aplicación dentro del contenedor
+          hostPort      = 80  # Puerto en el que escucha ECS
+        }
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "my_service" {
+  name            = "my-service"
+  cluster         = aws_ecs_cluster.my_cluster.id
+  task_definition = aws_ecs_task_definition.my_task_definition.arn
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = ["subnet-12345678"]  # Reemplaza con las subnets donde deseas lanzar tus contenedores
+    security_groups = ["sg-12345678"]      # Reemplaza con los security groups adecuados
+  }
+}
+
+resource "aws_lambda_function" "my_lambda_function" {
+  function_name    = "my-lambda-function"
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.8"
+  filename         = "lambda_function.zip"  # Reemplaza con el nombre de tu archivo zip de la función Lambda
+  source_code_hash = filebase64sha256("lambda_function.zip")
+
+  environment {
+    variables = {
+      # Puedes definir variables de entorno aquí si es necesario
+    }
+  }
+}
+
+
+#Para implementar un pipeline de CI/CD con GitHub Actions que automatice el proceso de construcción y despliegue de la aplicación en AWS ECS y Lambda, puedes seguir estos pasos:
+#Configuración del repositorio:
+#Asegúremos de tener tu código de aplicación, así como los archivos de configuración de Terraform, en un repositorio de GitHub.
+#Configuración de AWS credentials:
+#Configuraremos las credenciales de AWS en GitHub Actions para que pueda acceder a tu cuenta de AWS. Puedes almacenarlas como secretos en la configuración de tu repositorio.
+#Configuración del pipeline de CI/CD:
+#Creamos un archivo YAML en la carpeta .github/workflows de tu repositorio para definir el pipeline de CI/CD. Aquí tienes un ejemplo básico:
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.15.0
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan -out=tfplan
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.15.0
+
+      - name: Terraform apply
+        run: terraform apply tfplan
+        env:
+          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+
+# El pipeline se activará en cada push a la rama principal (main) del repositorio.
+# El trabajo build se encarga de validar y planificar los cambios en la infraestructura con Terraform.
+# El trabajo deploy se ejecuta después del trabajo build y se encarga de aplicar los cambios planificados en la infraestructura.
+
+# Configuración de secretos:
+# Asegúremos de configurar los secretos AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY en la configuración de secretos de tu repositorio en GitHub, 
+# para que GitHub Actions pueda acceder a tu cuenta de AWS durante el despliegue.
+# Con este pipeline de CI/CD, cada vez que realices un push a la rama principal de tu repositorio en GitHub, 
+# GitHub Actions validará y aplicará los cambios en la infraestructura utilizando Terraform, lo que resultará en la construcción y despliegue 
+# automatizado de tu aplicación en AWS ECS y Lambda. Asegúremos  de ajustar y probar este pipeline según tus necesidades y la configuración 
+# específica de la aplicación y entorno AW
