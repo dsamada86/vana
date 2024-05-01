@@ -70,13 +70,13 @@ resource "aws_lambda_function" "my_lambda_function" {
 }
 
 
-#Para implementar un pipeline de CI/CD con GitHub Actions que automatice el proceso de construcción y despliegue de la aplicación en AWS ECS y Lambda, puedes seguir estos pasos:
-#Configuración del repositorio:
-#Asegúremos de tener tu código de aplicación, así como los archivos de configuración de Terraform, en un repositorio de GitHub.
-#Configuración de AWS credentials:
-#Configuraremos las credenciales de AWS en GitHub Actions para que pueda acceder a tu cuenta de AWS. Puedes almacenarlas como secretos en la configuración de tu repositorio.
-#Configuración del pipeline de CI/CD:
-#Creamos un archivo YAML en la carpeta .github/workflows de tu repositorio para definir el pipeline de CI/CD. Aquí tienes un ejemplo básico:
+# Para implementar un pipeline de CI/CD con GitHub Actions que automatice el proceso de construcción y despliegue de la aplicación en AWS ECS y Lambda, puedes seguir estos pasos:
+# Configuración del repositorio:
+# Asegúremos de tener tu código de aplicación, así como los archivos de configuración de Terraform, en un repositorio de GitHub.
+# Configuración de AWS credentials:
+# Configuraremos las credenciales de AWS en GitHub Actions para que pueda acceder a tu cuenta de AWS. Puedes almacenarlas como secretos en la configuración de tu repositorio.
+# Configuración del pipeline de CI/CD:
+# Creamos un archivo YAML en la carpeta .github/workflows de tu repositorio para definir el pipeline de CI/CD. Aquí tienes un ejemplo básico:
 
 name: CI/CD Pipeline
 
